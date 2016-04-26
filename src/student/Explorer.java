@@ -387,28 +387,32 @@ public class Explorer {
                             Map<Node, List<Node>> pathsFromStartToNodes, Map<Node, Map<Node, List<Node>>> allPathsFromAllHighGolds){
         System.out.println("------------------------------------------");
         System.out.println("METHOD CALL: makeEscape");
+        // alist to keep track of visited nodes
+        List<Node> visitedGoldNodes = new ArrayList<>();
+
         // start our loop to plan and make next move, which we do until we get to exit
         while (state.getCurrentNode() != state.getExit()) {
             System.out.println("Still not at exit - we are at " + state.getCurrentNode().getId() + " need to move again..");
             //we are not at exit yet - find the best move
             Node nextMove = calcBestMove(state.getCurrentNode(), state.getTimeRemaining(),
-                    distancesFromGolds, highGolds, distancesFromStart, state);
+                    distancesFromGolds, highGolds, distancesFromStart, state, visitedGoldNodes);
             System.out.println("Best move is to node " + nextMove.getId()
                     + " with " + nextMove.getTile().getGold() + " golds.");
 
             if (state.getCurrentNode() == start) {
                 System.out.println("About to make first journey...");
                 List<Node> journeyNodes = pathsFromStartToNodes.get(nextMove);
-                makeJourney(state, nextMove, journeyNodes);
+                makeJourney(state, nextMove, journeyNodes, visitedGoldNodes);
             } else {
                 Map<Node, List<Node>> requiredPathMaps = allPathsFromAllHighGolds.get(state.getCurrentNode());
                 List<Node> journeyNodes = requiredPathMaps.get(nextMove);
-                makeJourney(state, nextMove, journeyNodes);
+                makeJourney(state, nextMove, journeyNodes, visitedGoldNodes);
             }
         }
     }
     private Node calcBestMove(Node currentPos, int timeRemaining, Map<Node, Map<Node, Integer>> distancesFromGolds,
-                              Map<Node, Integer> highGolds, Map<Node, Integer> distancesFromStart, EscapeState state){
+                              Map<Node, Integer> highGolds, Map<Node, Integer> distancesFromStart,
+                              EscapeState state, List<Node> visitedGoldNodes){
         System.out.println("------------------------------------------");
         System.out.println("METHOD CALL: calcBestMove...");
         Node bestMove;
@@ -442,7 +446,7 @@ public class Explorer {
                 dstFromExit = distancesFromGolds.get(tempNode).get(state.getExit());
             }
             //get nodeValue for this potential node and put into nodeValues map
-            nodeValue = calcNodeValue(gold, dstFromCurrent, dstFromExit, timeRemaining);
+            nodeValue = calcNodeValue(tempNode, gold, dstFromCurrent, dstFromExit, timeRemaining, visitedGoldNodes);
             System.out.println("node:" + tempNode.getId() + "  gold value: " + nodeValue);
             nodeValues.put(tempNode, nodeValue);
         }
@@ -460,7 +464,8 @@ public class Explorer {
     // a method for calculating a numeric value to represent the value of moving to each gold node
     // the value is dependent on amount of gold, its distance form current location, and its distance from exit
     // there are 3 constants which act as multipliers for these 3 factors, and can be adjusted easily
-    private Double calcNodeValue(int gold, int dstFromCurrent, int dstFromExit, int timeRemaining){
+    private Double calcNodeValue(Node node, int gold, int dstFromCurrent, int dstFromExit,
+                                 int timeRemaining, List<Node> visitedGoldNodes){
         System.out.println("------------------------------------------");
         System.out.println("METHOD CALL: calcNodeValue");
         final Double kGold = 1.0;
@@ -468,7 +473,7 @@ public class Explorer {
         final Double kDstFromExit = 1.0;
         System.out.println("  Dst from current:" + dstFromCurrent + "  distanceFromExit:" + dstFromExit
                 + "  timeToExitViaThis:" + (dstFromCurrent + dstFromExit) + "  time left:" + timeRemaining);
-        if(gold == 0) {
+        if(visitedGoldNodes.contains(node)) {
             //node already been visited
             System.out.println("node already visited!");
             return  0.0;
@@ -482,7 +487,7 @@ public class Explorer {
     }
 
     // a method to make a journey from one key node to another, picking up any gold it passes
-    private void makeJourney(EscapeState state, Node nextMove, List<Node> journeyNodes) {
+    private void makeJourney(EscapeState state, Node nextMove, List<Node> journeyNodes, List<Node> visitedGoldNodes) {
         System.out.println("------------------------------------------");
         System.out.println("METHOD CALL: makeJourney");
         System.out.println("making a journey from " + state.getCurrentNode().getId() + " to " + nextMove.getId());
@@ -507,28 +512,30 @@ public class Explorer {
                 if(state.getCurrentNode().getTile().getGold() > 0){
                     System.out.print("..Picking up Gold!!!...");
                     state.pickUpGold();
-                    collectGoldNearby(state, 0);
+                    visitedGoldNodes.add(state.getCurrentNode());
                 }
                 System.out.println();
             }
+            collectGoldNearby(state, 0, visitedGoldNodes);
         }
     }
     // a method for recursively getting any gold nearby, if time permits, and then returning to original pos
-    private void collectGoldNearby(EscapeState state, int extraTimeToGetBack){
+    private void collectGoldNearby(EscapeState state, int extraTimeToGetBack, List<Node> visitedGoldNodes){
         Node origNode = state.getCurrentNode();
         int timeRemaining = state.getTimeRemaining();
         Set<Node> neighboursSet = state.getCurrentNode().getNeighbours();
         List<Node> neighboursList = Arrays.asList(neighboursSet.toArray(new Node[neighboursSet.size()]));
         List<Node> neighboursWithGold = neighboursList.stream()
-                .filter(p -> p.getTile().getGold() != 0)
+                .filter(p -> ( (p.getTile().getGold() != 0) && (!visitedGoldNodes.contains(p)) ) )
                 .collect(Collectors.toList());
-
         if((timeRemaining - extraTimeToGetBack) > (2 * neighboursWithGold.size())){
             neighboursWithGold.forEach(neighbour -> {
+                System.out.println("moving to a neighbour and back!");
                 state.moveTo(neighbour);
                 state.pickUpGold();
+                visitedGoldNodes.add(state.getCurrentNode());
                 // look for new neighbours
-                collectGoldNearby(state, (extraTimeToGetBack + 1));
+                collectGoldNearby(state, (extraTimeToGetBack + 10), visitedGoldNodes);
                 state.moveTo(origNode);
             });
         }
