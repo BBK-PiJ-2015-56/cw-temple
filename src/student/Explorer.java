@@ -165,8 +165,8 @@ public class Explorer {
         Collection<Node> nodesCollection = state.getVertices();
         List<Node> allNodes = new ArrayList<>(nodesCollection);
 
-        //HashMap<Node, Integer> dstGoldToNodes = new HashMap<Node, Integer>();
-        HashMap<Node, HashMap<Node, Integer>> dstGoldsToNodes = new HashMap<Node, HashMap<Node, Integer>>();
+        Map<Node, Integer> distancesFromStart = new HashMap<Node, Integer>();
+        Map<Node, Map<Node, Integer>> distancesFromGolds = new HashMap<>();
 
         System.out.println("STARTING ESCAPE: start:" + state.getCurrentNode().getId() + "  exit:" + state.getExit().getId()
                 + "  nodes:" + allNodes.size() + "  time:" + state.getTimeRemaining());
@@ -179,22 +179,12 @@ public class Explorer {
 
         //HashMap<Node, Map<Node, List<Node>>> dstsGoldsToNodes = new HashMap<>();
         //calc all paths from all highGolds to all Nodes
-        HashMap<Node, Map<Node, List<Node>>> allPathsFromAllHighGolds = findAllPathsFromGolds(highGolds, allNodes);
+        Map<Node, Map<Node, List<Node>>> allPathsFromAllHighGolds = findAllPathsFromGolds(highGolds, allNodes, distancesFromGolds);
 
 
         //calculate the shortestPaths and Distances from start to all nodes
-        //declare the variables we will be using to help us make our moves
-
-        Node start = state.getCurrentNode();
-        System.out.println("CALLING METHOD: initDstToNodes for start........................");
-        HashMap<Node, Integer> dstStartToNodes = initDstToNodes(start, nodes);
-        System.out.println("Here are the nodes and their dst from the start");
-        System.out.print("[ ");
-        allNodes.forEach(node ->
-                System.out.print("(node: " + node.getId() + ", " + "dst:" + dstStartToNodes.get(node) + ") "));
-        System.out.println("]");
-        System.out.println("CALLING METHOD: findPathsToNodes for start");
-        Map<Node, List<Node>> pathsStartToNodes = findPathsToNodes(start, nodes, dstStartToNodes);
+        Map<Node, List<Node>> pathsFromstartToNodes
+                = findPathsFromNodeToNodes(state.getCurrentNode(), allNodes, distancesFromStart);
         System.out.println("ALL PATHS FROM START CALCULATED");
 
         makeEscape(state);
@@ -231,8 +221,9 @@ public class Explorer {
     }
 
     //returns a Map of all paths from all golds
-    private HashMap<Node, Map<Node, List<Node>>> findAllPathsFromGolds(Map<Node, Integer> golds, List<Node> allNodes,...dst?){
-        HashMap<Node, Map<Node, List<Node>>> allPathsFromAllGolds = new HashMap<>();
+    private Map<Node, Map<Node, List<Node>>> findAllPathsFromGolds(Map<Node, Integer> golds, List<Node> allNodes,
+                                                                       Map<Node, Map<Node, Integer>> distancesFromGolds){
+        Map<Node, Map<Node, List<Node>>> allPathsFromAllGolds = new HashMap<>();
 
         //list of gold nodes
         List<Node> goldList = golds.entrySet().stream()
@@ -243,14 +234,14 @@ public class Explorer {
         //for each node
         for (int i = 0; i < golds.size(); i++) {
             Node tempNode = goldList.get(i);
+            Map<Node,Integer> distancesFromThisGold = new HashMap<>();
             // for each node, initialise a new map for paths and new map for distances
             //Map<Node, Integer> dstToNodesFromTemp = initDstToNodes(tempNode, goldNodeList);
             System.out.println("CALC PATHS FOR GOLD NODE:" + tempNode.getId() );
-            Map<Node, List<Node>> pathsFromTempToNodes = findPathsFromNodeToNodes(tempNode, allNodes);
+            Map<Node, List<Node>> pathsFromTempToNodes = findPathsFromNodeToNodes(tempNode, allNodes, distancesFromThisGold);
             allPathsFromAllGolds.put(tempNode, pathsFromTempToNodes);
-
-            //update the map that stores all the distances from all golds to all other nodes
-            //dstGoldsToNodes.put(tempNode, dstGoldsToNodes.get(state.getExit()));
+            //update this map of distances from this gold into the map that stores the distances from all golds
+            distancesFromGolds.put(tempNode, distancesFromThisGold);
         }
         System.out.println("ALL GOLD PATHS CALCULATED...");
         return allPathsFromAllGolds;
