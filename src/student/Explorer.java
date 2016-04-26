@@ -435,7 +435,7 @@ public class Explorer {
                 dstFromExit = distancesFromStart.get(state.getExit());
             } else {
                 //we are at a gold
-                dstFromCurrent = distancesFromGolds.get(currentPos).get(currentPos);
+                dstFromCurrent = distancesFromGolds.get(currentPos).get(tempNode);
                 dstFromExit = distancesFromGolds.get(tempNode).get(state.getExit());
             }
             //get nodeValue for this potential node and put into nodeValues map
@@ -463,8 +463,8 @@ public class Explorer {
         final Double kGold = 1.0;
         final Double kDstFromCurrent = 1.0;
         final Double kDstFromExit = 1.0;
-        System.out.println("Dst from current:" + dstFromCurrent + ", distanceFromExit:" + dstFromExit
-                + "timeToExitViaThis:" + (dstFromCurrent + dstFromExit) + "time left:" + timeRemaining);
+        System.out.println("  Dst from current:" + dstFromCurrent + "  distanceFromExit:" + dstFromExit
+                + "  timeToExitViaThis:" + (dstFromCurrent + dstFromExit) + "  time left:" + timeRemaining);
         if(gold == 0) {
             //node already been visited
             System.out.println("node already visited!");
