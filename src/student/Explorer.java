@@ -208,7 +208,7 @@ public class Explorer {
 
         Map<Node, Integer> top25PCGolds = goldNodes.entrySet().stream()
                 . sorted(Map.Entry.<Node, Integer>comparingByValue().reversed())
-                .limit(5)
+                .limit(30)
                 .collect(Collectors.toMap(p -> p.getKey(), p -> p.getValue()));
 
         return top25PCGolds;
@@ -387,12 +387,19 @@ public class Explorer {
                             Map<Node, List<Node>> pathsFromStartToNodes, Map<Node, Map<Node, List<Node>>> allPathsFromAllHighGolds){
         System.out.println("------------------------------------------");
         System.out.println("METHOD CALL: makeEscape");
-        // alist to keep track of visited nodes
+        System.out.println("THERE ARE " + highGolds.size() + " GOLD NODES WE MAY GO DIRECTLY TO");
+        // a list to keep track of visited nodes
         List<Node> visitedGoldNodes = new ArrayList<>();
 
         // start our loop to plan and make next move, which we do until we get to exit
         while (state.getCurrentNode() != state.getExit()) {
             System.out.println("Still not at exit - we are at " + state.getCurrentNode().getId() + " need to move again..");
+            if(state.getCurrentNode().getId() != start.getId()){
+                System.out.print("KEY SUMMARY: ");
+                System.out.print("At Gold. Current Dst To Exit:"
+                        + distancesFromGolds.get(state.getCurrentNode()).get(state.getExit()));
+                System.out.println("  Time Remaining:" + state.getTimeRemaining());
+            }
             //we are not at exit yet - find the best move
             Node nextMove = calcBestMove(state.getCurrentNode(), state.getTimeRemaining(),
                     distancesFromGolds, highGolds, distancesFromStart, state, visitedGoldNodes);
@@ -403,7 +410,7 @@ public class Explorer {
                 System.out.println("About to make first journey...");
                 List<Node> journeyNodes = pathsFromStartToNodes.get(nextMove);
                 makeJourney(state, nextMove, journeyNodes, visitedGoldNodes);
-            } else {
+            }else{
                 Map<Node, List<Node>> requiredPathMaps = allPathsFromAllHighGolds.get(state.getCurrentNode());
                 List<Node> journeyNodes = requiredPathMaps.get(nextMove);
                 makeJourney(state, nextMove, journeyNodes, visitedGoldNodes);
@@ -421,7 +428,7 @@ public class Explorer {
         Node tempNode;
         int gold;
         int dstFromCurrent;
-        int dstFromExit;
+        int dstToExit;
         Double nodeValue;
 
         //list of gold nodes
@@ -439,17 +446,21 @@ public class Explorer {
             if (!(goldList.contains(currentPos))) {
                 //we are at start
                 dstFromCurrent = distancesFromStart.get(tempNode);
-                dstFromExit = distancesFromStart.get(state.getExit());
+                dstToExit = distancesFromStart.get(state.getExit());
             } else {
                 //we are at a gold
                 dstFromCurrent = distancesFromGolds.get(currentPos).get(tempNode);
-                dstFromExit = distancesFromGolds.get(tempNode).get(state.getExit());
+                dstToExit = distancesFromGolds.get(tempNode).get(state.getExit());
             }
             //get nodeValue for this potential node and put into nodeValues map
-            nodeValue = calcNodeValue(tempNode, gold, dstFromCurrent, dstFromExit, timeRemaining, visitedGoldNodes);
-            System.out.println("node:" + tempNode.getId() + "  gold value: " + nodeValue);
+            nodeValue = calcNodeValue(tempNode, gold, dstFromCurrent, dstToExit, timeRemaining, visitedGoldNodes);
+            System.out.println("node:" + tempNode.getId() + " amount of gold:" + tempNode.getTile().getGold()
+                    + " gold collected? " + visitedGoldNodes.contains(tempNode) + " gold value: " + nodeValue);
             nodeValues.put(tempNode, nodeValue);
         }
+
+        System.out.println("Time remaining now:" + state.getTimeRemaining());
+
         // find the node with the highest nodeValue
         bestMove = Collections.max(nodeValues.entrySet(),
                 (entry1, entry2) -> entry1.getValue() > entry2.getValue() ? 1 : -1).getKey();
@@ -464,25 +475,25 @@ public class Explorer {
     // a method for calculating a numeric value to represent the value of moving to each gold node
     // the value is dependent on amount of gold, its distance form current location, and its distance from exit
     // there are 3 constants which act as multipliers for these 3 factors, and can be adjusted easily
-    private Double calcNodeValue(Node node, int gold, int dstFromCurrent, int dstFromExit,
+    private Double calcNodeValue(Node node, int gold, int dstFromCurrent, int dstToExit,
                                  int timeRemaining, List<Node> visitedGoldNodes){
         System.out.println("------------------------------------------");
         System.out.println("METHOD CALL: calcNodeValue");
         final Double kGold = 1.0;
         final Double kDstFromCurrent = 1.0;
         final Double kDstFromExit = 1.0;
-        System.out.println("  Dst from current:" + dstFromCurrent + "  distanceFromExit:" + dstFromExit
-                + "  timeToExitViaThis:" + (dstFromCurrent + dstFromExit) + "  time left:" + timeRemaining);
+        System.out.println("  Dst from current:" + dstFromCurrent + "  distanceFromExit:" + dstToExit
+                + "  timeToExitViaThis:" + (dstFromCurrent + dstToExit) + "  time left:" + timeRemaining);
         if(visitedGoldNodes.contains(node)) {
             //node already been visited
             System.out.println("node already visited!");
             return  0.0;
-        } else if((dstFromCurrent + dstFromExit) > timeRemaining) {
+        } else if((dstFromCurrent + dstToExit) > timeRemaining) {
             System.out.println("not enough time remaining!");
             //node too far away from exit
             return  0.0;
         } else{
-            return (kGold * gold)/(kDstFromCurrent * dstFromCurrent + kDstFromExit * dstFromExit);
+            return (kGold * gold)/(kDstFromCurrent * dstFromCurrent + kDstFromExit * dstToExit);
         }
     }
 
@@ -501,9 +512,6 @@ public class Explorer {
                 System.out.print("..next intended move:" + journeyNodes.get(i).getId() + "  ");
                 Set<Node> neighboursSet = state.getCurrentNode().getNeighbours();
                 List<Node> neighboursList = Arrays.asList(neighboursSet.toArray(new Node[neighboursSet.size()]));
-                Boolean containsNextMove = neighboursSet.contains(journeyNodes.get(i));
-                if(!containsNextMove) System.out.println
-                        ("WARNING: next move is not a neighbour of current pos!!!");
                 System.out.print("....moving to " + journeyNodes.get(i).getId());
                 //make a move
                 state.moveTo(journeyNodes.get(i));
@@ -516,7 +524,7 @@ public class Explorer {
                 }
                 System.out.println();
             }
-            collectGoldNearby(state, 0, visitedGoldNodes);
+            //collectGoldNearby(state, 0, visitedGoldNodes);
         }
     }
     // a method for recursively getting any gold nearby, if time permits, and then returning to original pos
@@ -530,7 +538,9 @@ public class Explorer {
                 .collect(Collectors.toList());
         if((timeRemaining - extraTimeToGetBack) > (2 * neighboursWithGold.size())){
             neighboursWithGold.forEach(neighbour -> {
-                System.out.println("moving to a neighbour and back!");
+                System.out.println("moving to " + neighbour.getId() + " and back! It has "
+                        + neighbour.getTile().getGold() + " golds.");
+                System.out.println("CHECK: is it in visitedNodes? " + visitedGoldNodes.contains(neighbour));
                 state.moveTo(neighbour);
                 state.pickUpGold();
                 visitedGoldNodes.add(state.getCurrentNode());
@@ -539,7 +549,5 @@ public class Explorer {
                 state.moveTo(origNode);
             });
         }
-
-
     }
 }
