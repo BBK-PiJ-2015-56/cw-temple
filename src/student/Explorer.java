@@ -170,7 +170,7 @@ public class Explorer {
         Map<Node, Map<Node, Integer>> distancesFromGolds = new HashMap<>();
 
         System.out.println("STARTING ESCAPE: start:" + state.getCurrentNode().getId() + "  exit:" + state.getExit().getId()
-                + "  nodes:" + allNodes.size() + "  time:" + state.getTimeRemaining());
+                + "  nodes:" + allNodes.size() + "  time:" + state.getTimeRemaining() + "------------------------------");
 
         // get the best gold squares - top 25% because larger board means more steps allowed
         Map<Node, Integer> highGolds = getTop25PCGolds(allNodes);
@@ -181,9 +181,9 @@ public class Explorer {
         //HashMap<Node, Map<Node, List<Node>>> dstsGoldsToNodes = new HashMap<>();
         //calc all paths from all highGolds to all Nodes
         Map<Node, Map<Node, List<Node>>> allPathsFromAllHighGolds = findAllPathsFromGolds(highGolds, allNodes, distancesFromGolds);
-
-
-        //calculate the shortestPaths and Distances from start to all nodes
+        
+        // initialise the distancesFromStart
+        distancesFromStart = initDstToNodes(start, allNodes);
         Map<Node, List<Node>> pathsFromStartToNodes
                 = findPathsFromNodeToNodes(state.getCurrentNode(), allNodes, distancesFromStart);
         System.out.println("ALL PATHS FROM START CALCULATED");
@@ -240,7 +240,8 @@ public class Explorer {
             Node tempNode = goldList.get(i);
             Map<Node,Integer> distancesFromThisGold = new HashMap<>();
             // for each node, initialise a new map for paths and new map for distances
-            //Map<Node, Integer> dstToNodesFromTemp = initDstToNodes(tempNode, goldNodeList);
+            distancesFromThisGold = initDstToNodes(tempNode, allNodes);
+
             System.out.println("CALC PATHS FOR GOLD NODE:" + tempNode.getId() );
             Map<Node, List<Node>> pathsFromTempToNodes = findPathsFromNodeToNodes(tempNode, allNodes, distancesFromThisGold);
             allPathsFromAllGolds.put(tempNode, pathsFromTempToNodes);
@@ -256,8 +257,7 @@ public class Explorer {
     private Map<Node, List<Node>> findPathsFromNodeToNodes(Node start, List<Node> allNodes, Map<Node, Integer> distancesFromThisNode) {
         System.out.println("------------------------------------------");
         System.out.println("METHOD CALL: findPathFromNodeToNodes from " + start.getId());
-        Map<Node, List<Node>> pathsFromNode = initPathsToNodes(start, allNodes);
-
+        Map<Node, List<Node>> pathsFromNode = initPathsToNodes(allNodes);
         //A List of all Nodes for which we don't know shortest dst - all of them to begin with
         List<Node> unoptNodes = new ArrayList<>();
         allNodes.forEach(node -> unoptNodes.add(node));
@@ -289,13 +289,15 @@ public class Explorer {
     private Map<Node, Integer> initDstToNodes(Node start, List<Node> allNodes){
         System.out.println("------------------------------------------");
         System.out.println("METHOD CALL initDstToNodes from " + start.getId() + "...");
+        System.out.print("size of allNodes:" + allNodes.size());
         Map<Node, Integer> dstToNodes = new HashMap<>();
         allNodes.forEach(node -> dstToNodes.put(node , 100000));
         dstToNodes.replace(start, 0);
+        System.out.print("size of dstToNodes:" + dstToNodes.size());
         return dstToNodes;
     }
     //a method to init all paths as having their own node in pos 0
-    private Map<Node, List<Node>> initPathsToNodes(Node start, List<Node> allNodes){
+    private Map<Node, List<Node>> initPathsToNodes(List<Node> allNodes){
         System.out.println("------------------------------------------");
         System.out.println("METHOD CALL: initPathsToNodes.");
         Map<Node, List<Node>> pathsFromNodeToNodes = new HashMap<>();
@@ -315,6 +317,8 @@ public class Explorer {
         System.out.println("------------------------------------------");
         System.out.println("METHOD CALL: getNextNode.");
         Node nextNode = unopt.get(0);
+        System.out.println(" we start nextNode as the 1st element in unopt which is " + nextNode.getId());
+        System.out.println("size of unopt:" + unopt.size() +  ",  size of distances:" + distances.size());
         if(unopt.size() > 1) {
             for (int i = 1; i < unopt.size(); i++) {
                 if (distances.get(unopt.get(i)) < distances.get(nextNode)){
@@ -322,7 +326,7 @@ public class Explorer {
                 }
             }
         }
-        System.out.print("next node for opt: " + nextNode);
+        System.out.print("final next node for optimizing next: " + nextNode.getId());
         return nextNode;
     }
 
