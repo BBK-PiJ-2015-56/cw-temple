@@ -440,7 +440,7 @@ public class Explorer {
             }
             //get nodeValue for this potential node and put into nodeValues map
             nodeValue = calcNodeValue(gold, dstFromCurrent, dstFromExit, timeRemaining);
-            System.out.println("node:" + tempNode.getId() + "gold value: " + nodeValue);
+            System.out.println("node:" + tempNode.getId() + "  gold value: " + nodeValue);
             nodeValues.put(tempNode, nodeValue);
         }
         // find the node with the highest nodeValue
@@ -448,7 +448,7 @@ public class Explorer {
                 (entry1, entry2) -> entry1.getValue() > entry2.getValue() ? 1 : -1).getKey();
         System.out.println("bestMove node: " + bestMove.getId() + ", gold: " + bestMove.getTile().getGold());
 
-        if (bestMove.getTile().getGold() == 0)
+        if (nodeValues.get(bestMove) == 0)
                 // we have collected all the golds we wanted, or no other nodes are within reach
                 return state.getExit();
         else
