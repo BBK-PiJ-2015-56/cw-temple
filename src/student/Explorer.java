@@ -181,7 +181,7 @@ public class Explorer {
         //HashMap<Node, Map<Node, List<Node>>> dstsGoldsToNodes = new HashMap<>();
         //calc all paths from all highGolds to all Nodes
         Map<Node, Map<Node, List<Node>>> allPathsFromAllHighGolds = findAllPathsFromGolds(highGolds, allNodes, distancesFromGolds);
-        
+
         // initialise the distancesFromStart
         distancesFromStart = initDstToNodes(start, allNodes);
         Map<Node, List<Node>> pathsFromStartToNodes
@@ -440,6 +440,7 @@ public class Explorer {
             }
             //get nodeValue for this potential node and put into nodeValues map
             nodeValue = calcNodeValue(gold, dstFromCurrent, dstFromExit, timeRemaining);
+            System.out.println("node:" + tempNode.getId() + "gold value: " + nodeValue);
             nodeValues.put(tempNode, nodeValue);
         }
         // find the node with the highest nodeValue
@@ -448,7 +449,7 @@ public class Explorer {
         System.out.println("bestMove node: " + bestMove.getId() + ", gold: " + bestMove.getTile().getGold());
 
         if (bestMove.getTile().getGold() == 0)
-                // we have collected all the golds we wanted
+                // we have collected all the golds we wanted, or no other nodes are within reach
                 return state.getExit();
         else
             return bestMove;
@@ -462,11 +463,14 @@ public class Explorer {
         final Double kGold = 1.0;
         final Double kDstFromCurrent = 1.0;
         final Double kDstFromExit = 1.0;
-
+        System.out.println("Dst from current:" + dstFromCurrent + ", distanceFromExit:" + dstFromExit
+                + "timeToExitViaThis:" + (dstFromCurrent + dstFromExit) + "time left:" + timeRemaining);
         if(gold == 0) {
             //node already been visited
+            System.out.println("node already visited!");
             return  0.0;
-        } else if(dstFromCurrent  + dstFromExit > timeRemaining) {
+        } else if((dstFromCurrent + dstFromExit) > timeRemaining) {
+            System.out.println("not enough time remaining!");
             //node too far away from exit
             return  0.0;
         } else{
@@ -494,6 +498,7 @@ public class Explorer {
                         ("WARNING: next move is not a neighbour of current pos!!!");
                 System.out.print("....moving to " + journeyNodes.get(i).getId());
                 state.moveTo(journeyNodes.get(i));
+                System.out.print("...time remaining now: " + state.getTimeRemaining());
                 if(state.getCurrentNode().getTile().getGold() > 0){
                     System.out.print("..Picking up Gold!!!...");
                     state.pickUpGold();
