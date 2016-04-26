@@ -29,12 +29,12 @@
       <file leaf-file-name="Explorer.java" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/student/Explorer.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.11132438">
-              <caret line="437" column="15" selection-start-line="437" selection-start-column="15" selection-end-line="437" selection-end-column="15" />
+            <state vertical-scroll-proportion="-26.4">
+              <caret line="529" column="42" selection-start-line="529" selection-start-column="42" selection-end-line="529" selection-end-column="42" />
               <folding>
                 <element signature="imports" expanded="true" />
                 <element signature="e#7955#7970#0" expanded="true" />
-                <element signature="e#10030#10045#0" expanded="true" />
+                <element signature="e#10282#10297#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -661,7 +661,7 @@
       <option name="number" value="Default" />
       <updated>1461613770845</updated>
       <workItem from="1461613773980" duration="797000" />
-      <workItem from="1461650925188" duration="25991000" />
+      <workItem from="1461650925188" duration="27509000" />
     </task>
     <task id="LOCAL-00001" summary="started again">
       <created>1461614286538</created>
@@ -717,11 +717,17 @@
       <option name="project" value="LOCAL" />
       <updated>1461686219545</updated>
     </task>
-    <option name="localTasksCounter" value="10" />
+    <task id="LOCAL-00010" summary="all working">
+      <created>1461686631026</created>
+      <option name="number" value="00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1461686631026</updated>
+    </task>
+    <option name="localTasksCounter" value="11" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="26788000" />
+    <option name="totallyTimeSpent" value="28306000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="-7" y="9" width="1368" height="699" extended-state="0" />
@@ -735,7 +741,7 @@
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="0" side_tool="true" content_ui="tabs" />
       <window_info id="Maven Projects" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.067911714" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.9779287" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Designer" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.037721895" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
@@ -760,7 +766,8 @@
     <MESSAGE value="all NPE's dealt with - distance maps were not initialised properly. Now just need to adjust the constants in calcNextMove to make sure we escape" />
     <MESSAGE value="working - scoring around 15000" />
     <MESSAGE value="changed distFromCurrent" />
-    <option name="LAST_COMMIT_MESSAGE" value="changed distFromCurrent" />
+    <MESSAGE value="all working" />
+    <option name="LAST_COMMIT_MESSAGE" value="all working" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager />
@@ -778,7 +785,7 @@
           <folding>
             <element signature="imports" expanded="true" />
             <element signature="e#7955#7970#0" expanded="true" />
-            <element signature="e#10030#10045#0" expanded="true" />
+            <element signature="e#10282#10297#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -821,12 +828,12 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/student/Explorer.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.11132438">
-          <caret line="437" column="15" selection-start-line="437" selection-start-column="15" selection-end-line="437" selection-end-column="15" />
+        <state vertical-scroll-proportion="-26.4">
+          <caret line="529" column="42" selection-start-line="529" selection-start-column="42" selection-end-line="529" selection-end-column="42" />
           <folding>
             <element signature="imports" expanded="true" />
             <element signature="e#7955#7970#0" expanded="true" />
-            <element signature="e#10030#10045#0" expanded="true" />
+            <element signature="e#10282#10297#0" expanded="true" />
           </folding>
         </state>
       </provider>

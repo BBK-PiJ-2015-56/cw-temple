@@ -169,8 +169,9 @@ public class Explorer {
         Map<Node, Integer> distancesFromStart = new HashMap<Node, Integer>();
         Map<Node, Map<Node, Integer>> distancesFromGolds = new HashMap<>();
 
+        System.out.println("STARTING ESCAPE!   STARTING ESCAPE!   STARTING ESCAPE!   STARTING ESCAPE!   STARTING ESCAPE!");
         System.out.println("STARTING ESCAPE: start:" + state.getCurrentNode().getId() + "  exit:" + state.getExit().getId()
-                + "  nodes:" + allNodes.size() + "  time:" + state.getTimeRemaining() + "------------------------------");
+                + "  nodes:" + allNodes.size() + "  time:" + state.getTimeRemaining());
 
         // get the best gold squares - top 25% because larger board means more steps allowed
         Map<Node, Integer> highGolds = getTop25PCGolds(allNodes);
@@ -201,7 +202,9 @@ public class Explorer {
                 goldNodes.put(node, node.getTile().getGold());
         });
         long goldNodesRequired;
-        goldNodesRequired = Math.round(0.25 * goldNodes.size());
+        // we can adjust the number of goldNodes we want to consider collecting, depending on processing speed etc
+        //goldNodesRequired = Math.round(0.25 * goldNodes.size());
+        goldNodesRequired = goldNodes.size();
 
         Map<Node, Integer> top25PCGolds = goldNodes.entrySet().stream()
                 . sorted(Map.Entry.<Node, Integer>comparingByValue().reversed())
@@ -497,14 +500,39 @@ public class Explorer {
                 if(!containsNextMove) System.out.println
                         ("WARNING: next move is not a neighbour of current pos!!!");
                 System.out.print("....moving to " + journeyNodes.get(i).getId());
+                //make a move
                 state.moveTo(journeyNodes.get(i));
+                //collect gold from any immediate neighbours too - eventually do this recursively
                 System.out.print("...time remaining now: " + state.getTimeRemaining());
                 if(state.getCurrentNode().getTile().getGold() > 0){
                     System.out.print("..Picking up Gold!!!...");
                     state.pickUpGold();
+                    collectGoldNearby(state, 0);
                 }
                 System.out.println();
             }
         }
+    }
+    // a method for recursively getting any gold nearby, if time permits, and then returning to original pos
+    private void collectGoldNearby(EscapeState state, int extraTimeToGetBack){
+        Node origNode = state.getCurrentNode();
+        int timeRemaining = state.getTimeRemaining();
+        Set<Node> neighboursSet = state.getCurrentNode().getNeighbours();
+        List<Node> neighboursList = Arrays.asList(neighboursSet.toArray(new Node[neighboursSet.size()]));
+        List<Node> neighboursWithGold = neighboursList.stream()
+                .filter(p -> p.getTile().getGold() != 0)
+                .collect(Collectors.toList());
+
+        if((timeRemaining - extraTimeToGetBack) > (2 * neighboursWithGold.size())){
+            neighboursWithGold.forEach(neighbour -> {
+                state.moveTo(neighbour);
+                state.pickUpGold();
+                // look for new neighbours
+                collectGoldNearby(state, (extraTimeToGetBack + 1));
+                state.moveTo(origNode);
+            });
+        }
+
+
     }
 }
