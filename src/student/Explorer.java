@@ -401,7 +401,7 @@ public class Explorer {
                 System.out.println("  Time Remaining:" + state.getTimeRemaining());
             }
             //we are not at exit yet - find the best move
-            Node nextMove = calcBestMove(state.getCurrentNode(), state.getTimeRemaining(),
+            Node nextMove = calcBestMove(start, state.getCurrentNode(), state.getTimeRemaining(),
                     distancesFromGolds, highGolds, distancesFromStart, state, visitedGoldNodes);
             System.out.println("Best move is to node " + nextMove.getId()
                     + " with " + nextMove.getTile().getGold() + " golds.");
@@ -417,7 +417,7 @@ public class Explorer {
             }
         }
     }
-    private Node calcBestMove(Node currentPos, int timeRemaining, Map<Node, Map<Node, Integer>> distancesFromGolds,
+    private Node calcBestMove(Node start, Node currentPos, int timeRemaining, Map<Node, Map<Node, Integer>> distancesFromGolds,
                               Map<Node, Integer> highGolds, Map<Node, Integer> distancesFromStart,
                               EscapeState state, List<Node> visitedGoldNodes){
         System.out.println("------------------------------------------");
@@ -443,7 +443,7 @@ public class Explorer {
             gold = tempNode.getTile().getGold();
 
             //set dstFromCurrent and dstFromExit for this node
-            if (!(goldList.contains(currentPos))) {
+            if ((state.getCurrentNode().getId() == start.getId())) {
                 //we are at start
                 dstFromCurrent = distancesFromStart.get(tempNode);
                 dstToExit = distancesFromStart.get(state.getExit());
@@ -482,7 +482,7 @@ public class Explorer {
         final Double kGold = 1.0;
         final Double kDstFromCurrent = 1.0;
         final Double kDstFromExit = 1.0;
-        System.out.println("  Dst from current:" + dstFromCurrent + "  distanceFromExit:" + dstToExit
+        System.out.println("  Dst from current:" + dstFromCurrent + "  distanceToExit:" + dstToExit
                 + "  timeToExitViaThis:" + (dstFromCurrent + dstToExit) + "  time left:" + timeRemaining);
         if(visitedGoldNodes.contains(node)) {
             //node already been visited
