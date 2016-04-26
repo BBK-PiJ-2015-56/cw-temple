@@ -175,7 +175,7 @@ public class Explorer {
         // get the best gold squares - top 25% because larger board means more steps allowed
         Map<Node, Integer> highGolds = getTop25PCGolds(allNodes);
 
-        //avg gold per square, including blank squares
+        //avg gold per square, including blank squares. used later to calc best next move
         Double avgGold = calcAvgGold(allNodes);
 
         //HashMap<Node, Map<Node, List<Node>>> dstsGoldsToNodes = new HashMap<>();
@@ -209,15 +209,12 @@ public class Explorer {
         return top25PCGolds;
     }
     private Double calcAvgGold(List<Node> nodes) {
-        Map<Node,Integer> nodeGolds = new HashMap<>();
-        // we will use avg later to convert all nodes to score out of 100
-        Double avgGold = nodeGolds.entrySet().stream()
-                .map(Map.Entry::getValue)
-                .collect(Collectors.toList())
-                .stream()
-                .mapToDouble(a -> a)
-                .average()
-                .getAsDouble();
+        Double totalGold = 0.0;
+        Double avgGold;
+        for(int i = 0; i < nodes.size(); i++){
+            totalGold += nodes.get(i).getTile().getGold();
+        }
+        avgGold = totalGold / nodes.size();
         return avgGold;
     }
 
@@ -375,14 +372,17 @@ public class Explorer {
             System.out.println("Best move is to node " + nextMove.getId()
                     + " with " + nextMove.getTile().getGold() + " golds.");
 
-            if(state.getCurrentNode() == start) {
+            if (state.getCurrentNode() == start) {
                 System.out.println("About to make first journey...");
-                makeJourney(state, nextMove, pathsFromStartToNodes);
-            }else
-                makeJourney(state, nextMove, allPathsFromAllHighGolds.get(state.getCurrentNode()));
+                List<Node> journeyNodes = pathsFromStartToNodes.get(nextMove);
+                makeJourney(state, nextMove, journeyNodes);
+            } else {
+                Map<Node, List<Node>> requiredPathMaps = allPathsFromAllHighGolds.get(state.getCurrentNode());
+                List<Node> journeyNodes = requiredPathMaps.get(nextMove);
+                makeJourney(state, nextMove, journeyNodes);
+            }
         }
     }
-
     private Node calcBestMove(Node currentPos, int timeRemaining, Map<Node, Map<Node, Integer>> distancesFromGolds,
                               Map<Node, Integer> highGolds, Map<Node, Integer> distancesFromStart, EscapeState state){
         System.out.println();
@@ -432,19 +432,9 @@ public class Explorer {
         else
             return bestMove;
         }
-
-/*
-        bestMove = state.getExit();
-        for(int i = 0; i < nodeValues.size(); i++){
-            System.out.print(" (node:" + topGoldNodes.get(i).getId()
-                    + ", value:" + nodeValues.get(topGoldNodes.get(i)) + ") ");
-            if(nodeValues.get(topGoldNodes.get(i)) > nodeValues.get(bestMove))
-                bestMove = topGoldNodes.get(i);
-        }
-        System.out.println();
-        return bestMove;
-    }*/
-
+    // a method for calculating a numeric value to represent the value of moving to each gold node
+    // the value is dependent on amount of gold, its distance form current location, and its distance from exit
+    // there are 3 constants which act as multipliers for these 3 factors, and can be adjusted easily
     private Double calcNodeValue(int gold, int dstFromCurrent, int dstFromExit, int timeRemaining){
         final Double kGold = 1.0;
         final Double kDstFromCurrent = 1.0;
@@ -461,53 +451,26 @@ public class Explorer {
         }
     }
 
-
-    private void makeJourney(EscapeState state, Node nextMove, Map<Node, List<Node>> pathsForAllNodes) {
-        System.out.print("journey start pos:" + state.getCurrentNode().getId());
-        System.out.print("...journey path list: [ ");
-        for(int i = 0; i < journeyNodes.size(); i++){
-            System.out.print((journeyNodes.get(i).getId()) + ", ");
-        }
-        System.out.println(" ]");
+    // a method to make a journey from one key node to another, picking up any gold it passes
+    private void makeJourney(EscapeState state, Node nextMove, List<Node> journeyNodes) {
+        System.out.println("making a journey from " + state.getCurrentNode().getId() + " to " + nextMove.getId());
 
         // 1st element should be equal to startingNode
-        if (state.getCurrentNode() != journeyNodes.get(journeyNodes.size()-1)) {
+        if (state.getCurrentNode() != journeyNodes.get(journeyNodes.size()-1))
             System.out.println("Cannot make this journey as you are not at the right starting point");
-            System.out.println("The currentNodeId is " + state.getCurrentNode().getId());
-            System.out.println("The journey starting nodeId is " + journeyNodes.get(journeyNodes.size()-1).getId());
-        } else {
+        else {
             for (int i = journeyNodes.size()-2; i >= 0; i--) {
                 System.out.print("   current pos:" + state.getCurrentNode().getId());
                 System.out.print("..next intended move:" + journeyNodes.get(i).getId() + "  ");
                 Set<Node> neighboursSet = state.getCurrentNode().getNeighbours();
                 List<Node> neighboursList = Arrays.asList(neighboursSet.toArray(new Node[neighboursSet.size()]));
                 Boolean containsNextMove = neighboursSet.contains(journeyNodes.get(i));
-                if(!containsNextMove){
-                    System.out.println("WARNING: next move is not a neighbour of current pos!!!");
-                    System.out.print("The neighbours for the current node are: ");
-                    System.out.print("[");
-                    for(int j = 0; j < neighboursSet.size(); j++){
-                        System.out.print(neighboursList.get(j).getId() + ", ");
-                    }
-                    System.out.println(" ]");
-
-                    System.out.println("The separate paths for every node in the journey path are as follows: ");
-                    for(int k = 0; k< journeyNodes.size(); k++){
-                        List<Node> pathForThisNode = pathsForAllNodes.get(journeyNodes.get(k));
-                        System.out.println("node(" + journeyNodes.get(k).getId() + ")");
-                        System.out.print("Path(");
-                        for(int n = 0; n < pathForThisNode.size(); n++){
-                            System.out.print(pathForThisNode.get(n).getId() + ", ");
-                        }
-                        System.out.println(")");
-                    }
-                    System.out.println(" ]");
-                    // print the path for each node in the path
-                }
+                if(!containsNextMove) System.out.println
+                        ("WARNING: next move is not a neighbour of current pos!!!");
                 System.out.print("....moving to " + journeyNodes.get(i).getId());
                 state.moveTo(journeyNodes.get(i));
                 if(state.getCurrentNode().getTile().getGold() > 0){
-                    System.out.println("..Picking up Gold!!!");
+                    System.out.print("..Picking up Gold!!!...");
                     state.pickUpGold();
                 }
                 System.out.println();
